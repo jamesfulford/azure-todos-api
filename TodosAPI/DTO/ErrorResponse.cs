@@ -1,0 +1,90 @@
+﻿using System;
+
+namespace TodosAPI.DTO
+{
+    /// <summary>
+    /// Enumeration of errors to error numbers.
+    /// </summary>
+    public enum ErrorNumber : long
+    {
+        EXISTS = 1,
+        TOOLARGE = 2,
+        REQUIRED = 3,
+        MAXENTITIES = 4,
+        NOTFOUND = 5,
+        TOOSMALL = 6,
+        INVALID = 7,
+    }
+
+    public class ErrorResponse
+    {
+        /// <summary>
+        /// Number corresponding to type of error.
+        /// </summary>
+        /// <remarks>
+        /// 1: Entity already exists.
+        /// 2: The specified parameter is too large.
+        /// 3: The parameter is required.
+        /// 4: No more entities can be created at this time.
+        /// 5: The entity could not be found.
+        /// 6: The parameter is too small.
+        /// 7: The parameter is not valid.
+        /// </remarks>
+        public ErrorNumber errorNumber;
+
+        /// <summary>
+        /// Parameter name being referenced in the error, if relevant to error.
+        /// </summary>
+        public string parameterName;
+
+        /// <summary>
+        /// Parameter value violating validation, if relevant to error.
+        /// </summary>
+        public string parameterValue;
+
+        /// <summary>
+        /// A developer-only description of the error.
+        /// </summary>
+        public string errorDescription;
+
+        /// <summary>
+        /// Creates an error.
+        /// </summary>
+        /// <param name="errorNumber">Error number, indicating type of problem.</param>
+        /// <param name="parameterName">Key holding faulty value, if relevant to error.</param>
+        /// <param name="parameterValue">Faulty value converted to a string, if relevant to error.</param>
+        public ErrorResponse(ErrorNumber errorNumber, string parameterName, string parameterValue)
+        {
+            this.errorNumber = errorNumber;
+            this.parameterName = parameterName;
+            this.parameterValue = parameterValue;
+            switch (errorNumber)
+            {
+                case ErrorNumber.EXISTS:
+                    this.errorDescription = "The entity already exists";
+                    break;
+                case ErrorNumber.TOOLARGE:
+                    this.errorDescription = "The parameter value is too large";
+                    break;
+                case ErrorNumber.REQUIRED:
+                    this.errorDescription = "The parameter is required";
+                    break;
+                case ErrorNumber.MAXENTITIES:
+                    this.errorDescription = "The maximum number of entities have been created. No further entities can be created at this time.";
+                    break;
+                case ErrorNumber.NOTFOUND:
+                    this.errorDescription = "The entity could not be found";
+                    break;
+                case ErrorNumber.TOOSMALL:
+                    this.errorDescription = "The parameter value is too small";
+                    break;
+                case ErrorNumber.INVALID:
+                    this.errorDescription = "The parameter value is not valid";
+                    break;
+                default:
+                    this.errorDescription = "An unknown error occurred";
+                    break;
+            }
+        }
+    }
+}
