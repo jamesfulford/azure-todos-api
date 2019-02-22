@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
-
+using TodosAPI.Data;
 
 /// <summary>
 /// Defines the configuration of the Web API applicaiton
@@ -56,6 +56,13 @@ public class Startup
         });
 
         services.AddSwaggerGen(ConfigureSwaggerUI);
+
+        services.AddDbContext<Context>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddOptions();
+        services.Configure<TodosAPI.CustomSettings.TodoLimits>(Configuration.GetSection(nameof(TodosAPI.CustomSettings.TodoLimits)));
+        
+        services.AddSingleton<IConfiguration>(Configuration);
     }
 
     /// <summary>
