@@ -4,6 +4,12 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using TodosAPI.CustomSettings;
+using TodosAPI.Data;
+using TodosAPI.Models;
 
 namespace TodosAPI.Controllers
 {
@@ -12,6 +18,40 @@ namespace TodosAPI.Controllers
     public class TasksController : ControllerBase
     {
         /// <summary>
+        /// The database context
+        /// </summary>
+        private readonly Context _context;
+
+        /// <summary>
+        /// Logger instance
+        /// </summary>
+        private readonly ILogger _logger;
+
+        /// <summary>
+        /// The configuration instance
+        /// </summary>
+        private readonly IConfiguration _configuration;
+
+        /// <summary>
+        /// The customer limits settings
+        /// </summary>
+        private readonly TodoLimits _todoLimits;
+
+        public TasksController(
+            ILogger<TasksController> logger,
+            Context context,
+            IConfiguration configuration,
+            IOptions<TodoLimits> todoLimits
+        )
+        {
+            _logger = logger;
+            _context = context;
+            _configuration = configuration;
+            _todoLimits = todoLimits.Value;
+
+        }
+
+        /// <summary>
         /// Get all tasks.
         /// </summary>
         /// <returns></returns>
@@ -19,9 +59,7 @@ namespace TodosAPI.Controllers
         [ProducesResponseType(typeof(DTO.TodoList), (int)HttpStatusCode.OK)]
         public ActionResult<DTO.TodoList> GetAllTasks()
         {
-            return new DTO.TodoList(new List<DTO.TodoResponse> {
-                new DTO.TodoResponse(1, "Hello World!", true, new DateTime(2019, 2, 14)),
-            });
+            return new DTO.TodoList((from todo in _context.Todos select todo).ToList());
         }
 
         /// <summary>
@@ -30,11 +68,18 @@ namespace TodosAPI.Controllers
         /// <param name="id">Identifier to look up the task by.</param>
         /// <returns></returns>
         [HttpGet("{id:int}")]
-        [ProducesResponseType(typeof(DTO.TodoResponse), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(Todo), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        public ActionResult<DTO.TodoResponse> GetTask(int id)
+        public ActionResult<Todo> GetTask(int id)
         {
-            return new DTO.TodoResponse(1, "Hello World!", true, new DateTime(2019, 2, 14));
+            Todo todo = (from t in _context.Todos where t.id == id select t).SingleOrDefault();
+            if (todo == null)
+            {
+                _logger.LogInformation($"Todo(id={id}) was not found.");
+                // TODO(james): Return an error response
+                return NotFound();
+            }
+            return todo;
         }
 
         /// <summary>
@@ -42,7 +87,7 @@ namespace TodosAPI.Controllers
         /// </summary>
         /// <param name="todo">The todo item to create.</param>
         [HttpPost]
-        public void CreateTask([FromBody] DTO.Todo todo) { }
+        public void CreateTask([FromBody] Todo todo) { }
 
         /// <summary>
         /// Update a pre-existing task.
@@ -50,7 +95,7 @@ namespace TodosAPI.Controllers
         /// <param name="id">The identifier of the task to update.</param>
         /// <param name="todo">The new state of the task to update.</param>
         [HttpPatch("{id:int}")]
-        public void UpdateTask(int id, [FromBody] DTO.Todo todo) { }
+        public void UpdateTask(int id, [FromBody] Todo todo) { }
 
         /// <summary>
         /// Delete a task.
@@ -58,5 +103,10 @@ namespace TodosAPI.Controllers
         /// <param name="id">The identifier of the task to delete.</param>
         [HttpDelete("{id:int}")]
         public void DeleteTask(int id) { }
+
+        private bool CanAddMoreTodos()
+        {
+            return _todoLimits.MaxTodos > (from t in _context.Todos select t).Count();
+        }
     }
 }
