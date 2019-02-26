@@ -88,12 +88,45 @@ namespace TodosAPI.Controllers
         {
             Todo todo = (from t in _context.Todos where t.id == id select t).SingleOrDefault();
             if (todo == null)
+        private Boolean TaskNameExists(string taskName)
+        {
+            return (from t in _context.Todos where t.taskName == taskName select t).FirstOrDefault() == null;
+        }
+
+        private DTO.ErrorNumber ErrorMessageToErrorNumber(string errorText)
+        {
+            // These strings are set in data attributes on input payload as ErrorMessages.
+            switch (errorText)
             {
-                _logger.LogInformation($"Todo(id={id}) was not found.");
-                // TODO(james): Return an error response
-                return NotFound();
+                case "2":
+                    return DTO.ErrorNumber.TOOLARGE;
+                case "3":
+                    return DTO.ErrorNumber.REQUIRED;
+                case "6":
+                    return DTO.ErrorNumber.TOOSMALL;
+                case "7":
+                default:
+                    return DTO.ErrorNumber.INVALID;
             }
-            return todo;
+        }
+
+        private DTO.ErrorResponse MakeInvalidDataAttributeResponse ()
+        {
+            foreach (var key in ModelState.Keys)
+            {
+                if (ModelState[key].ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
+                {
+                    foreach (var error in ModelState[key].Errors)
+                    {
+                        return new DTO.ErrorResponse(
+                            ErrorMessageToErrorNumber(error.ErrorMessage),
+                            key,
+                            ModelState[key].RawValue == null ? null : ModelState[key].RawValue.ToString()
+                        );
+                    }
+                }
+            }
+            throw new Exception("ModelState is invalid, but has no erroring keys!");
         }
 
         /// <summary>
@@ -119,7 +152,7 @@ namespace TodosAPI.Controllers
                     }
 
                     // Unique constraint
-                    if ((from t in _context.Todos where t.taskName == todo.taskName select t).FirstOrDefault() != null)
+                    if (!TaskNameExists(todo.taskName))
                     {
                         return new ConflictObjectResult(new DTO.ErrorResponse(DTO.ErrorNumber.EXISTS, "taskName", todo.taskName));
                     }
@@ -131,37 +164,7 @@ namespace TodosAPI.Controllers
                 }
                 else
                 {
-                    foreach (var key in ModelState.Keys)
-                    {
-                        if (ModelState[key].ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
-                        {
-                            foreach (var error in ModelState[key].Errors)
-                            {
-                                DTO.ErrorNumber num;
-                                switch (error.ErrorMessage)
-                                {
-                                    case "2":
-                                        num = DTO.ErrorNumber.TOOLARGE;
-                                        break;
-                                    case "3":
-                                        num = DTO.ErrorNumber.REQUIRED;
-                                        break;
-                                    case "6":
-                                        num = DTO.ErrorNumber.TOOSMALL;
-                                        break;
-                                    case "7":
-                                    default:
-                                        num = DTO.ErrorNumber.INVALID;
-                                        break;
-                                }
-                                return BadRequest(new DTO.ErrorResponse(
-                                    num,
-                                    key,
-                                    ModelState[key].RawValue == null ? null : ModelState[key].RawValue.ToString()
-                                ));
-                            }
-                        }
-                    }
+                    return BadRequest(MakeInvalidDataAttributeResponse());
                 }
             }
             catch
