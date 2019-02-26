@@ -16,7 +16,7 @@ namespace TodosAPI.CustomSettings
         /// <value>
         /// The maximum number of todos.
         /// </value>
-        public int MaxTodos { get; set; } = 100;
+        public int MaxTaskEntries { get; set; } = 100;
     }
 
 

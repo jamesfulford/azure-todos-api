@@ -115,7 +115,7 @@ namespace TodosAPI.Controllers
 
         private bool CanAddMoreTodos()
         {
-            return _todoLimits.MaxTodos > (from t in _context.Todos select t).Count();
+            return _todoLimits.MaxTaskEntries > (from t in _context.Todos select t).Count();
         }
     }
 }
