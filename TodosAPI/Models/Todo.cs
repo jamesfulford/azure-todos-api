@@ -16,26 +16,29 @@ namespace TodosAPI.Models
         /// <value>The todo identifier.</value>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int? id { get; set; }
+        public long? id { get; set; }
 
         /// <summary>
         /// Gets or sets the content of the todo.
         /// </summary>
         /// <value>The content of the task.</value>
-        [Required]
-        [StringLength(200)]
+        [Required(AllowEmptyStrings = true, ErrorMessage = "3")]
+        [StringLength(100, ErrorMessage = "2")]
+        [MinLength(1, ErrorMessage = "6")]
         public string taskName { get; set; }
 
         /// <summary>
         /// Gets or sets the completion status of the todo.
         /// </summary>
         /// <value>The completion status of the todo.</value>
+        [Required(ErrorMessage = "3")]
         public bool isCompleted { get; set; }
 
         /// <summary>
         /// Gets or sets the due date of the todo.
         /// </summary>
         /// <value>The due date of the todo.</value>
+        [Required(ErrorMessage = "3")]
         public DateTime dueDate { get; set; }
 
         /// <summary>

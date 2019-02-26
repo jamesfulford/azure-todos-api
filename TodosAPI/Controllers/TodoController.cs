@@ -101,7 +101,75 @@ namespace TodosAPI.Controllers
         /// </summary>
         /// <param name="todo">The todo item to create.</param>
         [HttpPost]
-        public void CreateTask([FromBody] Todo todo) { }
+        [ProducesResponseType(typeof(Todo), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.Forbidden)]
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.Conflict)]
+        public IActionResult CreateTask([FromBody] Todo todo) {
+            try
+            {
+                // Required and various length constraints
+                if (ModelState.IsValid)
+                {
+
+                    // Max todos constraint
+                    if (!CanAddMoreTodos())
+                    {
+                        return StatusCode((int)HttpStatusCode.Forbidden, new DTO.ErrorResponse(DTO.ErrorNumber.MAXENTITIES));
+                    }
+
+                    // Unique constraint
+                    if ((from t in _context.Todos where t.taskName == todo.taskName select t).FirstOrDefault() != null)
+                    {
+                        return new ConflictObjectResult(new DTO.ErrorResponse(DTO.ErrorNumber.EXISTS, "taskName", todo.taskName));
+                    }
+
+                    // Add the todo
+                    _context.Todos.Add(todo);
+
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    foreach (var key in ModelState.Keys)
+                    {
+                        if (ModelState[key].ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
+                        {
+                            foreach (var error in ModelState[key].Errors)
+                            {
+                                DTO.ErrorNumber num;
+                                switch (error.ErrorMessage)
+                                {
+                                    case "2":
+                                        num = DTO.ErrorNumber.TOOLARGE;
+                                        break;
+                                    case "3":
+                                        num = DTO.ErrorNumber.REQUIRED;
+                                        break;
+                                    case "6":
+                                        num = DTO.ErrorNumber.TOOSMALL;
+                                        break;
+                                    case "7":
+                                    default:
+                                        num = DTO.ErrorNumber.INVALID;
+                                        break;
+                                }
+                                return BadRequest(new DTO.ErrorResponse(
+                                    num,
+                                    key,
+                                    ModelState[key].RawValue == null ? null : ModelState[key].RawValue.ToString()
+                                ));
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+            return CreatedAtRoute(GetTodoByIdRoute, new { todo.id }, todo);
+        }
 
         /// <summary>
         /// Update a pre-existing task.
