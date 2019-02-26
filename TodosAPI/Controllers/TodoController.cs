@@ -97,9 +97,10 @@ namespace TodosAPI.Controllers
                 Todo todo = GetTodoById(id);
                 if (todo == null)
                 {
-                    _logger.LogInformation($"Todo(id={id}) was not found.");
+                    _logger.LogInformation(Common.LoggingEvents.GetItemNotFound, $"Could not find task {id}");
                     return NotFound(new DTO.ErrorResponse(DTO.ErrorNumber.NOTFOUND, "id", id.ToString()));
                 }
+                _logger.LogInformation(Common.LoggingEvents.GetItem, $"Found task {id}");
                 return todo;
             }
             catch (Exception ex)
@@ -182,14 +183,16 @@ namespace TodosAPI.Controllers
                     _context.Todos.Add(todo);
 
                     _context.SaveChanges();
+                    _logger.LogInformation(Common.LoggingEvents.InsertItem, $"Created Todo {todo.id}");
                 }
                 else
                 {
                     return BadRequest(MakeInvalidDataAttributeResponse());
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(Common.LoggingEvents.InternalError, ex, "Error while creating task");
                 return StatusCode((int)HttpStatusCode.InternalServerError);
             }
             return CreatedAtRoute(GetTodoByIdRoute, new { todo.id }, todo);
@@ -216,6 +219,7 @@ namespace TodosAPI.Controllers
                     Todo targetTodo = GetTodoById(id);
                     if (targetTodo == null)
                     {
+                        _logger.LogInformation(Common.LoggingEvents.UpdateItemNotFound, $"Could not find task {id}");
                         return NotFound(new DTO.ErrorResponse(DTO.ErrorNumber.NOTFOUND, "id", id.ToString()));
                     }
 
@@ -231,14 +235,16 @@ namespace TodosAPI.Controllers
                     targetTodo.dueDate = todo.dueDate;
 
                     _context.SaveChanges();
+                    _logger.LogInformation(Common.LoggingEvents.UpdateItem, $"Updated task {id}");
                 }
                 else
                 {
                     return BadRequest(MakeInvalidDataAttributeResponse());
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(Common.LoggingEvents.InternalError, ex, $"Error while updating task {id}");
                 return StatusCode((int)HttpStatusCode.InternalServerError);
             }
             return NoContent();
