@@ -88,6 +88,7 @@ namespace TodosAPI.Controllers
         /// <returns>The Todo requested.</returns>
         [HttpGet("{id:int}", Name = GetTodoByIdRoute)]
         [ProducesResponseType(typeof(Todo), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
         public ActionResult<Todo> GetTask(int id)
         {
@@ -201,6 +202,7 @@ namespace TodosAPI.Controllers
         /// <param name="todo">The new state of the task to update.</param>
         [HttpPatch("{id:int}")]
         [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.Conflict)]
         public IActionResult UpdateTask(int id, [FromBody] Todo todo)
