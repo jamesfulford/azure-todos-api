@@ -7,15 +7,45 @@ namespace TodosAPI.DTO
     /// </summary>
     public enum ErrorNumber : long
     {
+        /// <summary>
+        /// Item already exists.
+        /// </summary>
         EXISTS = 1,
+
+        /// <summary>
+        /// Parameter is too large/long.
+        /// </summary>
         TOOLARGE = 2,
+
+        /// <summary>
+        /// Parameter is required.
+        /// </summary>
         REQUIRED = 3,
+
+        /// <summary>
+        /// Cannot create another item, because it would exceed the configured maximum.
+        /// </summary>
         MAXENTITIES = 4,
+
+        /// <summary>
+        /// Item with given id is not found.
+        /// </summary>
         NOTFOUND = 5,
+
+        /// <summary>
+        /// Parameter too small.
+        /// </summary>
         TOOSMALL = 6,
+
+        /// <summary>
+        /// Parameter is otherwise invalid.
+        /// </summary>
         INVALID = 7,
     }
 
+    /// <summary>
+    /// Data Transfer Object to serialize various error responses.
+    /// </summary>
     public class ErrorResponse
     {
         /// <summary>
@@ -53,7 +83,7 @@ namespace TodosAPI.DTO
         /// <param name="errorNumber">Error number, indicating type of problem.</param>
         /// <param name="parameterName">Key holding faulty value, if relevant to error.</param>
         /// <param name="parameterValue">Faulty value converted to a string, if relevant to error.</param>
-        public ErrorResponse(ErrorNumber errorNumber, string parameterName, string parameterValue)
+        public ErrorResponse(ErrorNumber errorNumber, string parameterName = null, string parameterValue = null)
         {
             this.errorNumber = errorNumber;
             this.parameterName = parameterName;

@@ -13,6 +13,9 @@ using TodosAPI.Models;
 
 namespace TodosAPI.Controllers
 {
+    /// <summary>
+    /// API for creating todo/task resources.
+    /// </summary>
     [Route("api/tasks")]
     [ApiController]
     public class TasksController : ControllerBase
@@ -37,6 +40,13 @@ namespace TodosAPI.Controllers
         /// </summary>
         private readonly TodoLimits _todoLimits;
 
+        /// <summary>
+        /// Instantiate a TasksController with Dependency Injection
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="context"></param>
+        /// <param name="configuration"></param>
+        /// <param name="todoLimits"></param>
         public TasksController(
             ILogger<TasksController> logger,
             Context context,
@@ -48,13 +58,12 @@ namespace TodosAPI.Controllers
             _context = context;
             _configuration = configuration;
             _todoLimits = todoLimits.Value;
-
         }
 
         /// <summary>
         /// Get all tasks.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A list of Todos</returns>
         [HttpGet]
         [ProducesResponseType(typeof(DTO.TodoList), (int)HttpStatusCode.OK)]
         public ActionResult<DTO.TodoList> GetAllTasks()
@@ -66,8 +75,8 @@ namespace TodosAPI.Controllers
         /// Get a task by id.
         /// </summary>
         /// <param name="id">Identifier to look up the task by.</param>
-        /// <returns></returns>
         [HttpGet("{id:int}")]
+        /// <returns>The Todo requested.</returns>
         [ProducesResponseType(typeof(Todo), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
         public ActionResult<Todo> GetTask(int id)
