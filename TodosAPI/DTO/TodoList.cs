@@ -3,6 +3,9 @@ using TodosAPI.Models;
 
 namespace TodosAPI.DTO
 {
+    /// <summary>
+    /// DTO for transferring a list of Todos.
+    /// </summary>
     public class TodoList
     {
         /// <summary>

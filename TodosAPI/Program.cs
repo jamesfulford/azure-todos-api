@@ -7,6 +7,9 @@ using TodosAPI.Data;
 
 namespace TodosAPI
 {
+    /// <summary>
+    /// Program to run Todo API
+    /// </summary>
     public class Program
     {
         /// <summary>
@@ -35,6 +38,11 @@ namespace TodosAPI
             host.Run();
         }
 
+        /// <summary>
+        /// Builds a new WebHost to serve the API
+        /// </summary>
+        /// <param name="args">Args from command line.</param>
+        /// <returns>A spun-up Todo API webserver host instance.</returns>
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
