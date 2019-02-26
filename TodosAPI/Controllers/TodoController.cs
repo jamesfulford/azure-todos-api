@@ -200,7 +200,47 @@ namespace TodosAPI.Controllers
         /// <param name="id">The identifier of the task to update.</param>
         /// <param name="todo">The new state of the task to update.</param>
         [HttpPatch("{id:int}")]
-        public void UpdateTask(int id, [FromBody] Todo todo) { }
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.Conflict)]
+        public IActionResult UpdateTask(int id, [FromBody] Todo todo)
+        {
+            try
+            {
+                // Required and various length constraints
+                if (ModelState.IsValid)
+                {
+                    // Find todo to update
+                    Todo targetTodo = GetTodoById(id);
+                    if (targetTodo == null)
+                    {
+                        return NotFound(new DTO.ErrorResponse(DTO.ErrorNumber.NOTFOUND, "id", id.ToString()));
+                    }
+
+                    // Unique constraint
+                    if (!TaskNameExists(todo.taskName))
+                    {
+                        return new ConflictObjectResult(new DTO.ErrorResponse(DTO.ErrorNumber.EXISTS, "taskName", todo.taskName));
+                    }
+
+                    // Update the todo
+                    targetTodo.isCompleted = todo.isCompleted;
+                    targetTodo.taskName = todo.taskName;
+                    targetTodo.dueDate = todo.dueDate;
+
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    return BadRequest(MakeInvalidDataAttributeResponse());
+                }
+            }
+            catch
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+            return NoContent();
+        }
 
         /// <summary>
         /// Delete a task.
