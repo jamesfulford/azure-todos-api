@@ -255,7 +255,31 @@ namespace TodosAPI.Controllers
         /// </summary>
         /// <param name="id">The identifier of the task to delete.</param>
         [HttpDelete("{id:int}")]
-        public void DeleteTask(int id) { }
+        [ProducesResponseType(typeof(void), (int)HttpStatusCode.NoContent)]
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.NotFound)]
+        public IActionResult DeleteTask(int id)
+        {
+            try
+            {
+                Todo todo = GetTodoById(id);
+                if (todo == null)
+                {
+                    _logger.LogInformation(Common.LoggingEvents.DeleteItemNotFound, $"Could not find task {id}");
+                    return NotFound(new DTO.ErrorResponse(DTO.ErrorNumber.NOTFOUND, "id", id.ToString()));
+                }
+
+                // Remove todo
+                _context.Todos.Remove(todo);
+                _context.SaveChanges();
+                _logger.LogInformation(Common.LoggingEvents.DeleteItem, $"Deleted task {id}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(Common.LoggingEvents.InternalError, ex, $"CustomerController Put Customer(id=[{id}]) caused an internal error.", id);
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+            return NoContent();
+        }
 
         private bool CanAddMoreTodos()
         {
