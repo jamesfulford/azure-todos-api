@@ -65,15 +65,64 @@ namespace TodosAPI.Controllers
             _todoLimits = todoLimits.Value;
         }
 
+        private const string ASC = "Asc";
+        private const string DESC = "Desc";
+        private static string[] orderByValues = new string[] { ASC, DESC };
+
+        private const string COMPLETED = "Completed";
+        private const string NOT_COMPLETED = "NotCompleted";
+        private const string ALL = "All";
+        private static string[] taskStatusValues = new string[] { COMPLETED, NOT_COMPLETED, ALL };
+        private static string[] taskStatusFilterValues = new string[] { COMPLETED, NOT_COMPLETED };
+
         /// <summary>
         /// Get all tasks.
         /// </summary>
+        /// <param name="orderByDate">Optional, "Asc" or "Desc" values indicating sorting by ascending or descending chronological order, respectively.</param>
+        /// <param name="taskStatus">Optional, "All", "Completed", or "NotCompleted" filter values by isCompleted attribute being either, true, or false, respectively.</param>
         /// <returns>A list of Todos</returns>
         [HttpGet]
         [ProducesResponseType(typeof(DTO.TodoList), (int)HttpStatusCode.OK)]
-        public ActionResult<DTO.TodoList> GetAllTasks()
+        [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public ActionResult<DTO.TodoList> GetAllTasks(string orderByDate = null, string taskStatus = ALL)
         {
-            return new DTO.TodoList((from todo in _context.Todos select todo).ToList());
+            try
+            {
+                var query = (from todo in _context.Todos select todo);
+
+                // Filter by task status
+                if (taskStatusValues.Contains(taskStatus))
+                {
+                    if (taskStatusFilterValues.Contains(taskStatus))
+                    {
+                        query = query.Where(t => t.isCompleted == (taskStatus == COMPLETED));
+                    }
+                }
+                else
+                {
+                    return BadRequest(new DTO.ErrorResponse(DTO.ErrorNumber.INVALID, "taskStatus", taskStatus));
+                }
+
+                // Order by date functionality
+                if (orderByDate != null)
+                {
+                    if (orderByValues.Contains(orderByDate))
+                    {
+                        query = query.OrderBy(t => (orderByDate == ASC) ? t.dueDate.Ticks : -t.dueDate.Ticks);
+                    }
+                    else
+                    {
+                        return BadRequest(new DTO.ErrorResponse(DTO.ErrorNumber.INVALID, "orderByDate", orderByDate));
+                    }
+                }
+                
+                return new DTO.TodoList(query.ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(Common.LoggingEvents.InternalError, ex, "Could not retrieve all tasks");
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
         }
 
         private Todo GetTodoById(long id)
