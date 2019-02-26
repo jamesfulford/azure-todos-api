@@ -76,6 +76,11 @@ namespace TodosAPI.Controllers
             return new DTO.TodoList((from todo in _context.Todos select todo).ToList());
         }
 
+        private Todo GetTodoById(long id)
+        {
+            return (from t in _context.Todos where t.id == id select t).SingleOrDefault();
+        }
+
         /// <summary>
         /// Get a task by id.
         /// </summary>
@@ -86,8 +91,23 @@ namespace TodosAPI.Controllers
         [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
         public ActionResult<Todo> GetTask(int id)
         {
-            Todo todo = (from t in _context.Todos where t.id == id select t).SingleOrDefault();
-            if (todo == null)
+            try
+            {
+                Todo todo = GetTodoById(id);
+                if (todo == null)
+                {
+                    _logger.LogInformation($"Todo(id={id}) was not found.");
+                    return NotFound(new DTO.ErrorResponse(DTO.ErrorNumber.NOTFOUND, "id", id.ToString()));
+                }
+                return todo;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(Common.LoggingEvents.InternalError, ex, $"CustomerController Get Customer(id=[{id}]) caused an internal error.", id);
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+        }
+
         private Boolean TaskNameExists(string taskName)
         {
             return (from t in _context.Todos where t.taskName == taskName select t).FirstOrDefault() == null;
