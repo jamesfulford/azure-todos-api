@@ -21,6 +21,11 @@ namespace TodosAPI.Controllers
     public class TasksController : ControllerBase
     {
         /// <summary>
+        /// Identifier for the Get TodoById route
+        /// </summary>
+        private const string GetTodoByIdRoute = "GetTodoByIdRoute";
+
+        /// <summary>
         /// The database context
         /// </summary>
         private readonly Context _context;
@@ -75,8 +80,8 @@ namespace TodosAPI.Controllers
         /// Get a task by id.
         /// </summary>
         /// <param name="id">Identifier to look up the task by.</param>
-        [HttpGet("{id:int}")]
         /// <returns>The Todo requested.</returns>
+        [HttpGet("{id:int}", Name = GetTodoByIdRoute)]
         [ProducesResponseType(typeof(Todo), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(DTO.ErrorResponse), (int)HttpStatusCode.BadRequest)]
         public ActionResult<Todo> GetTask(int id)
