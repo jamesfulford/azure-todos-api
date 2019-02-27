@@ -1,0 +1,9 @@
+Assignment #2: Todos API App Service
+James Fulford
+jaf968@g.harvard.edu
+
+Here, try this curl:
+```
+```
+
+Note: if the service cannot reach the database, the API will return a 500 error. This is expected behavior, which, G-d willing, you will never see :).
