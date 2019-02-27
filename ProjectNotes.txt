@@ -1,9 +1,11 @@
-Assignment #2: Todos API App Service
+Assignment #2: Tasks API App Service
 James Fulford
 jaf968@g.harvard.edu
 
-Here, try this curl:
-```
-```
+Here's my swagger UI URL: https://todosapi20190226101920.azurewebsites.net/swagger/index.html
 
-Note: if the service cannot reach the database, the API will return a 500 error. This is expected behavior, which, G-d willing, you will never see :).
+(Note: Todos and Tasks are the same thing, however "Tasks" in C# already exist (multithreading), so to avoid name conflicts I just use "Todos" wherever I can without breaking the contract specified in the assignment.
+
+I set TodoLimits:MaxTaskEntries to 10.
+
+Right now there are only the seeded todos.
